@@ -675,13 +675,6 @@ export function createFormControl<
       const watched = isWatched(name, _names, isBlurEvent);
 
       set(_formValues, name, fieldValue);
-
-      if (isBlurEvent) {
-        field._f.onBlur && field._f.onBlur(event);
-      } else if (field._f.onChange) {
-        field._f.onChange(event);
-      }
-
       const fieldState = updateTouchAndDirty(
         name,
         fieldValue,
@@ -698,6 +691,11 @@ export function createFormControl<
         });
 
       if (shouldSkipValidation) {
+        if (isBlurEvent) {
+          field._f.onBlur && field._f.onBlur(event);
+        } else if (field._f.onChange) {
+          field._f.onChange(event);
+        }
         return (
           shouldRender &&
           _subjects.state.next({ name, ...(watched ? {} : fieldState) })
@@ -747,7 +745,12 @@ export function createFormControl<
           field._f.deps as FieldPath<TFieldValues> | FieldPath<TFieldValues>[],
         );
 
-      shouldRenderByError(false, name, isValid, error, fieldState);
+      await shouldRenderByError(false, name, isValid, error, fieldState);
+      if (isBlurEvent) {
+        field._f.onBlur && field._f.onBlur(event);
+      } else if (field._f.onChange) {
+        field._f.onChange(event);
+      }
     }
   };
 

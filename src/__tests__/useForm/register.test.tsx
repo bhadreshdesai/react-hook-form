@@ -1668,6 +1668,37 @@ describe('register', () => {
     );
   });
 
+  it('should trigger custom onBlur event with fieldState update', async () => {
+    const customOnBlur = jest.fn();
+    const App = () => {
+      const { register, getFieldState } = useForm({ mode: 'onBlur' });
+      return (
+        <form>
+          <input
+            {...register('fieldOnBlurStateUpdate', {
+              required: true,
+              onBlur: () => {
+                const fieldState = getFieldState('fieldOnBlurStateUpdate');
+                customOnBlur(fieldState);
+              },
+            })}
+          />
+        </form>
+      );
+    };
+
+    render(<App />);
+    fireEvent.blur(screen.getAllByRole('textbox')[0]);
+    await waitFor(() => expect(customOnBlur).toHaveBeenCalledTimes(1));
+
+    expect(customOnBlur).toBeCalledWith(
+      expect.objectContaining({
+        invalid: true,
+        isTouched: true,
+      }),
+    );
+  });
+
   it('should not programmatically set input file value with FileList', async () => {
     function App() {
       const { register, watch } = useForm();
